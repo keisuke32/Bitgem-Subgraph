@@ -1,0 +1,578 @@
+type GemPoolFactory @entity {
+  # gem pool factory address
+  id: ID!
+
+  factoryAddress: String!
+
+  "claims created"
+  claimsCount: BigInt!
+  "total quantity on created claims"
+  claimsQuantity: BigInt!
+  "claims currently open"
+  claimsOpenCount: BigInt!
+  "total quantity on open claims"
+  claimsOpenQuantity: BigInt!
+  "total funds staked on created claims"
+  claimsStakedAmount: BigInt!
+  "total gem staking time in seconds"
+  claimsStakedTimeSecs: BigInt!
+  "total time staked by this user, including immature claim collections"
+  claimsStakedActualSeconds: BigInt!
+  "number of claim send transactions"
+  claimsSentCount: BigInt!
+
+  "number of gems minted"
+  gemsMintedCount: BigInt!
+  "total quantity specified on minted gems"
+  gemsMintedQuantity: BigInt!
+  "total funds staked on minted gems"
+  gemsStakedAmount: BigInt!
+  "number of gem send transactions"
+  gemsSentCount: BigInt!
+  "total quantity of gems in gem send transactions"
+  gemsSentQuantity: BigInt!
+
+  gemPoolsCount: Int!
+  gemPools: [GemPool!]! @derivedFrom(field: "factory")
+}
+
+# Gem staking pools
+type GemPool @entity {
+  # pool address
+  id: ID!
+
+  factory: GemPoolFactory!
+
+  "unique symbol for this gem pool"
+  symbol: String!
+  "name of this gem pool"
+  name: String!
+  "the current staking price for the gem pool"
+  stakingPrice: BigInt!
+  "the minimum staking time for this gem pool"
+  minTimeSecs: BigInt!
+  "the maximum staking time for this gem pool"
+  maxTimeSecs: BigInt!
+  "the difficulty step for this gem pool, determines staking price as gems are minted"
+  diffStep: BigInt!
+  "the maximum number of gem mints this gem pool allows"
+  maxMint: BigInt!
+  "limit staking to this ERC20 token"
+  allowedToken: String
+
+  "active claims for this staking pool"
+  claims: [Claim!]! @derivedFrom(field: "gemPool")
+  "gems created for this staking pool"
+  gems: [Gem!]! @derivedFrom(field: "gemPool")
+
+  "claims created"
+  claimsCount: BigInt!
+  "total quantity on created claims"
+  claimsQuantity: BigInt!
+  "claims currently open"
+  claimsOpenCount: BigInt!
+  "total quantity on open claims"
+  claimsOpenQuantity: BigInt!
+  "total funds staked on created claims"
+  claimsStakedAmount: BigInt!
+  "total gem staking time in seconds"
+  claimsStakedTimeSecs: BigInt!
+  "number of claim send transactions"
+  claimsSentCount: BigInt!
+  "actual time staked on collected claims"
+  claimsStakedActualSeconds: BigInt!
+
+  "number of gems minted"
+  gemsMintedCount: BigInt!
+  "total quantity specified on minted gems"
+  gemsMintedQuantity: BigInt!
+  "total funds staked on minted gems"
+  gemsStakedAmount: BigInt!
+  "number of gem send transactions"
+  gemsSentCount: BigInt!
+  "total quantity of gems in gem send transactions"
+  gemsSentQuantity: BigInt!
+}
+
+# User
+type User @entity {
+  "wallet address"
+  id: ID!
+
+  # relationships
+  claims: [Claim!]! @derivedFrom(field: "owner")
+  claimsSent: [ClaimSend!]! @derivedFrom(field: "from")
+  claimsReceived: [ClaimSend!]! @derivedFrom(field: "to")
+
+  loot: [Loot!]! @derivedFrom(field: "owner")
+  lootSent: [LootSend!]! @derivedFrom(field: "from")
+  lootReceived: [LootSend!]! @derivedFrom(field: "to")
+
+  gems: [Gem!]! @derivedFrom(field: "owner")
+  gemsSent: [GemSend!]! @derivedFrom(field: "from")
+  gemsReceived: [GemSend!]! @derivedFrom(field: "to")
+  gemsERC20Wrapped: [GemWrap!]! @derivedFrom(field: "user")
+
+  "claims owned by this user"
+  claimsCount: BigInt!
+  "claims owned by this user"
+  claimsQuantity: BigInt!
+  "total funds staked on created claims"
+  claimsStakedTotalAmount: BigInt!
+  "total gem staking time in seconds"
+  claimsStakedTimeSecs: BigInt!
+  "number of claim send transactions"
+  claimsSentCount: BigInt!
+  "actual time staked on collected claims"
+  claimsStakedActualSeconds: BigInt!
+
+  "gems owned by this user"
+  gemCount: BigInt!
+  "total quantity specified on minted gems"
+  gemQuantity: BigInt!
+  "total funds staked on minted gems"
+  gemStakedTotalAmount: BigInt!
+  "total gem staking time in seconds"
+  gemStakedTimeSecs: BigInt!
+  "number of gem send transactions"
+  gemsSentCount: BigInt!
+  "number of gem recieve transactions"
+  gemsReceivedCount: BigInt!
+  "total quantity of gems in gem send transactions"
+  gemsSentQuantity: BigInt!
+  "total quantity of gems in gem send transactions"
+  gemsReceivedQuantity: BigInt!
+  "number of gem wrap transactions"
+  gemsERC20WrapCount: BigInt!
+  "total quantity of gems in gem wrap transactions"
+  gemsERC20WrapQuantity: BigInt!
+
+  "total loot minted"
+  lootMintedCount: BigInt!
+
+  "total lootboxes opened"
+  lootboxesOpenCount: BigInt!
+
+  "Lootbox tokens minted"
+  lootboxTokensMinted: BigInt!
+
+  "total time staked by this user, including immature claim collections"
+  actualStakedTimeSecs: BigInt!
+
+  "offers registered"
+  offersRegisteredCount: BigInt!
+
+  "offers accepted"
+  offersAcceptedCount: BigInt!
+}
+
+# MultiToken Claim
+type Claim @entity {
+  # token address
+  id: ID!
+
+  # relationships
+  factory: GemPoolFactory!
+  gemPool: GemPool!
+  owner: User!
+
+  # claim info
+  stakedTimeSeconds: BigInt!
+  stakedAmount: BigInt!
+  quantity: BigInt!
+
+  "creation timestamp for this token"
+  createdAtTimestamp: BigInt!
+  "creation block number for this token"
+  createdAtBlockNumber: BigInt!
+  "last update timestamp for this token"
+  modifiedAtTimestamp: BigInt!
+  "is this claim collected"
+  collected: Boolean!
+  "collection timestamp for this token"
+  collectedAtTimestamp: BigInt
+  "was this claim mature when it was collected"
+  collectedWhenMature: Boolean
+  "total time this claim was staked when it was collected"
+  collectedAfterSeconds: BigInt
+
+  "transaction for the creation of this token"
+  transactionHash: Bytes
+}
+
+# MultiToken Gem
+type Gem @entity {
+  # token address
+  id: ID!
+
+  # relationships
+  factory: GemPoolFactory!
+  gemPool: GemPool!
+  owner: User!
+  claim: Claim!
+
+  # current quantity
+  quantity: BigInt!
+
+  "creation timestamp for this token"
+  createdAtTimestamp: BigInt!
+  "creation block number for this token"
+  createdAtBlockNumber: BigInt!
+  "last update timestamp for this token"
+  modifiedAtTimestamp: BigInt!
+  "transaction for the creation of this token"
+  transactionHash: Bytes
+}
+
+# Send claim token to address
+type ClaimSend @entity {
+  id: ID!
+  factory: GemPoolFactory!
+  gemPool: GemPool!
+  claim: Claim!
+  to: User!
+  from: User!
+  "creation timestamp for this send"
+  createdAtTimestamp: BigInt!
+  "creation block number for this send"
+  createdAtBlockNumber: BigInt!
+  "transaction for the creation of this send"
+  transactionHash: Bytes
+}
+
+# Send gem token to address
+type GemSend @entity {
+  id: ID!
+  factory: GemPoolFactory!
+  gemPool: GemPool!
+  gem: Gem!
+  to: User!
+  from: User!
+  "creation timestamp for this send"
+  createdAtTimestamp: BigInt!
+  "creation block number for this send"
+  createdAtBlockNumber: BigInt!
+  "transaction for the creation of this send"
+  transactionHash: Bytes
+}
+
+# Wrap gem token as erc20
+type GemWrap @entity {
+  id: ID!
+  factory: GemPoolFactory!
+  gemPool: GemPool!
+  gem: Gem!
+  user: User!
+  quantity: BigInt!
+  "creation timestamp for this wrap"
+  createdAtTimestamp: BigInt!
+  "creation block number for this wrap"
+  createdAtBlockNumber: BigInt!
+  "transaction for the creation of this wrap"
+  transactionHash: Bytes
+}
+
+type SwapMeet @entity {
+  # lootbox factory address
+  id: ID!
+
+  "swapmeet address"
+  address: String!
+
+  "total listed offers"
+  offerCount: BigInt!
+  offers: [Offer!]! @derivedFrom(field: "swapMeet")
+}
+
+type LootboxFactory @entity {
+  # lootbox factory address
+  id: ID!
+
+  "factory address"
+  factoryAddress: String!
+
+  "total lootbox opened"
+  openCount: BigInt!
+
+  "total loot count across all lootboxes"
+  totalLootCount: BigInt!
+
+  "total loot minted"
+  totalMintedCount: BigInt!
+
+  "total count of lootboxes"
+  lootboxesCount: BigInt!
+  lootboxes: [Lootbox!]! @derivedFrom(field: "factory")
+}
+
+# Lootbox
+type Lootbox @entity {
+  "owner"
+  owner: User!
+
+  # lootbox address
+  id: ID!
+
+  factory: LootboxFactory!
+
+  "Multitoken Address"
+  multitokenAddress: String!
+
+  "Lootbox hash"
+  lootboxHash: String!
+
+  "Contract address"
+  contractAddress: String!
+
+  "Random Farmer"
+  randomFarmer: RandomFarmer!
+
+  "unique symbol for this lootbox"
+  symbol: String!
+
+  "name of this lootbox"
+  name: String!
+
+  "description of this lootbox"
+  description: String!
+
+  "min loot per person"
+  minLootPerOpen: Int!
+
+  "max loot per person"
+  maxLootPerOpen: Int!
+
+  "the current FTM price to open the lootbox"
+  openPrice: BigInt!
+
+  "Max number of times lootbox can be opened"
+  maxOpens: BigInt!
+
+  "number of times that the lootbox has been opened"
+  openCount: BigInt!
+
+  "the total loot generated"
+  totalMintedCount: BigInt!
+
+  "amount of loot items in this lootbox"
+  lootCount: BigInt!
+
+  "The Loot items that this lootbox is disbursing"
+  loot: [Loot!]! @derivedFrom(field: "lootbox")
+}
+
+# Lootbox
+type Loot @entity {
+  "owner"
+  owner: User!
+
+  # loot address
+  id: ID!
+
+  lootbox: Lootbox!
+
+  "Symbol"
+  symbol: String!
+
+  "Name"
+  name: String!
+
+  "Probability"
+  probability: BigInt!
+
+  "Probability Index"
+  probabilityIndex: BigInt!
+
+  "Probability Roll"
+  probabilityRoll: BigInt!
+
+  "Max Mint"
+  maxMint: BigInt!
+
+  "Minted Count"
+  mintedCount: BigInt!
+}
+
+# Offer
+type Offer @entity {
+  "owner"
+  owner: User!
+
+  # offer hash
+  id: ID!
+
+  swapMeet: SwapMeet!
+
+  "Pool hash"
+  pool: GemPool!
+
+  "Gem hash"
+  gem: Gem!
+
+  "Loot hash"
+  loot: Loot!
+
+  "The quantity"
+  quantity: BigInt!
+
+  "The pools"
+  pools: [GemPool!]!
+
+  "The Gems"
+  gems: [Gem]!
+
+  "The Quantities"
+  quantities: [BigInt!]!
+
+  "Reference"
+  reference: BigInt!
+
+  "Open"
+  open: Boolean!
+
+  "Acceptor"
+  acceptor: User!
+}
+
+type RandomFarmer @entity {
+  id: ID!
+  owner: User!
+  "random farmer address"
+  address: String!
+}
+
+# Wrap gem token as erc20
+type OfferRegistration @entity {
+  id: ID!
+  from: User!
+  offer: Offer!
+  pool: GemPool!
+  gem: Gem!
+  fee: BigInt!
+  quantity: BigInt!
+  pools: [GemPool!]!
+  gems: [Gem!]!
+  quantities: [BigInt!]!
+  "creation timestamp for transaction"
+  createdAtTimestamp: BigInt!
+  "creation block number for transaction"
+  createdAtBlockNumber: BigInt!
+  "transaction for the creation of this offer registration"
+  transactionHash: Bytes
+}
+
+type OfferUnregistration @entity {
+  id: ID!
+  offer: Offer!
+  "creation timestamp for transaction"
+  createdAtTimestamp: BigInt!
+  "creation block number for transaction"
+  createdAtBlockNumber: BigInt!
+  "transaction for the creation of this offer registration"
+  transactionHash: Bytes
+}
+
+# Accept the listed offer
+type OfferAccept @entity {
+  id: ID!
+  offer: Offer!
+  pool: GemPool!
+  gem: Gem!
+  acceptor: User!
+  gems: [Gem]!
+  price: BigInt!
+  fee: BigInt!
+  "creation timestamp for transaction"
+  createdAtTimestamp: BigInt!
+  "creation block number for transaction"
+  createdAtBlockNumber: BigInt!
+  "transaction for the creation of this offer registration"
+  transactionHash: Bytes
+}
+
+# Send loot to address
+type LootSend @entity {
+  id: ID!
+  loot: Loot!
+  to: User!
+  from: User!
+  "creation timestamp for this send"
+  createdAtTimestamp: BigInt!
+  "creation block number for this send"
+  createdAtBlockNumber: BigInt!
+  "transaction for the creation of this send"
+  transactionHash: Bytes
+}
+
+# Create a new lootbox
+type LootboxCreation @entity {
+  id: ID!
+  lootbox: Lootbox!
+  contractAddress: String!
+  "creation timestamp for this send"
+  createdAtTimestamp: BigInt!
+  "creation block number for this send"
+  createdAtBlockNumber: BigInt!
+  "transaction for the creation of this send"
+  transactionHash: Bytes
+}
+
+# Open a lootbox
+type LootboxOpen @entity {
+  id: ID!
+  lootbox: Lootbox!
+  user: User!
+  "The loot recevied"
+  loot: [String!]!
+  "creation timestamp for this send"
+  createdAtTimestamp: BigInt!
+  "creation block number for this send"
+  createdAtBlockNumber: BigInt!
+  "transaction for the creation of this send"
+  transactionHash: Bytes
+}
+
+# Add loot definition
+type LootAdd @entity {
+  id: ID!
+  lootbox: Lootbox!
+  user: User!
+  "The loot added"
+  loot: Loot!
+  "creation timestamp for this send"
+  createdAtTimestamp: BigInt!
+  "creation block number for this send"
+  createdAtBlockNumber: BigInt!
+  "transaction for the creation of this send"
+  transactionHash: Bytes
+}
+
+# mint lootbox tokens
+type LootboxTokenMint @entity {
+  id: ID!
+  lootbox: Lootbox!
+  user: User!
+  "The quantity minted"
+  quantity: BigInt!
+  "creation timestamp for this send"
+  createdAtTimestamp: BigInt!
+  "creation block number for this send"
+  createdAtBlockNumber: BigInt!
+  "transaction for the creation of this send"
+  transactionHash: Bytes
+}
+
+# directly mint loot
+type LootMint @entity {
+  id: ID!
+  lootbox: Lootbox!
+  user: User!
+  "The loot minted"
+  loot: Loot!
+  "creation timestamp for this send"
+  createdAtTimestamp: BigInt!
+  "creation block number for this send"
+  createdAtBlockNumber: BigInt!
+  "transaction for the creation of this send"
+  transactionHash: Bytes
+}

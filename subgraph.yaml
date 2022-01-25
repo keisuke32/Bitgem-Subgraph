@@ -1,0 +1,54 @@
+specVersion: 0.0.2
+description: NFTGem is a decentralized protocol for NFT staking.
+repository: https://github.com/nftgem/bitgemv0-subgraph
+schema:
+  file: ./schema.graphql
+dataSources:
+
+  # the gem pool factory contract - creates gem staking pools
+  - kind: ethereum/contract
+    name: NFTGemPoolFactory
+    network: fantom
+    source:
+      address: '0xe502EC3A0025417F61a9BD44F0fAfD4DE6d13C65'
+      abi: NFTGemPoolFactory
+      startBlock: 12307990 
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      file: ./src/mappings/gemPoolFactory.ts
+      entities:
+        - GemPoolFactory
+        - GemPool
+      abis:
+        - name: NFTGemPoolFactory
+          file: ./abis/NFTGemPoolFactory.json
+      eventHandlers:
+        - event: NFTGemPoolCreated(string,string,uint256,uint256,uint256,uint256,uint256,address)
+          handler: handleNFTGemPoolCreated
+
+templates:
+  # the complex gem pool and its entities
+  - kind: ethereum/contract
+    name: NFTGemPool
+    network: fantom
+    source:
+      abi: NFTGemPool
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      file: ./src/mappings/gemPool.ts
+      entities:
+        - GemPoolFactory
+        - GemPool
+        - Claim
+        - Gem
+        - User
+      abis:
+        - name: NFTGemPool
+          file: ./abis/NFTGemPool.json
+      eventHandlers:
+        - event: NFTGemCreated(address,address,uint256,uint256,uint256)
+          handler: handleNFTGemCreated
